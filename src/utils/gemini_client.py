@@ -46,6 +46,8 @@ class GeminiClient:
             for msg in context_messages:
                 system_instruction_text += f"{msg['author']}: {msg['content']}\n"
 
+        print(f"🛠️ System Instruction: {system_instruction_text}")
+
         # Build the contents array with the user message
         contents = [{
             "parts": [{

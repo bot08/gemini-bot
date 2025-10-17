@@ -90,13 +90,16 @@ class GeminiBot(commands.Bot):
             if not content:
                 content = "Hello! How can I help you?"
             
+            print(f"👤 User: {message.author.display_name}")
+            print(f"💬 Prompt: {content}")
+
             # Show typing indicator while processing
             async with message.channel.typing():
                 # Get recent message history for context
                 context_messages = await self.get_recent_messages(message.channel, limit=10)
                 
                 # Call Gemini API with context
-                response = await self.gemini_client.generate_content(content, context_messages)
+                response = self.gemini_client.generate_content(content, context_messages)
                 
                 if response:
                     # Discord has a 2000 character limit per message
@@ -108,6 +111,7 @@ class GeminiBot(commands.Bot):
                     else:
                         await message.channel.send(response)
                 else:
+                    print(f"🔥 An error occurred with the Gemini API")
                     await message.channel.send("Sorry, I couldn't generate a response. Please try again later.")
         
         # Process commands if any
