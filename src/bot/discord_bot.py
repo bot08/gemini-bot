@@ -4,8 +4,9 @@ Discord bot that responds to mentions with Gemini API-generated content.
 
 import discord
 from discord.ext import commands
-from config import config
-from gemini_client import GeminiClient
+from typing import List, Dict
+from src.utils.config import config
+from src.utils.gemini_client import GeminiClient
 
 
 class GeminiBot(commands.Bot):
@@ -19,7 +20,7 @@ class GeminiBot(commands.Bot):
         intents.guilds = True
         
         super().__init__(command_prefix='!', intents=intents)
-        self.gemini_client = GeminiClient(config.gemini_api_key)
+        self.gemini_client = GeminiClient(config.gemini_api_key, config.system_prompt)
     
     async def setup_hook(self):
         """Called when the bot is starting up."""
@@ -29,6 +30,42 @@ class GeminiBot(commands.Bot):
         """Called when the bot is ready."""
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print("Bot is ready!")
+    
+    async def get_recent_messages(self, channel: discord.TextChannel, limit: int = 10) -> List[Dict[str, str]]:
+        """
+        Fetch recent messages from the channel for context.
+        
+        Args:
+            channel: Discord channel to fetch messages from
+            limit: Number of recent messages to fetch (default: 10)
+            
+        Returns:
+            List of message dictionaries with author and content
+        """
+        messages = []
+        try:
+            async for message in channel.history(limit=limit):
+                # Skip bot messages and empty messages
+                if message.author.bot or not message.content:
+                    continue
+                
+                # Clean up mentions in the content
+                content = message.content
+                for mention in message.mentions:
+                    content = content.replace(f'<@{mention.id}>', f'@{mention.display_name}')
+                    content = content.replace(f'<@!{mention.id}>', f'@{mention.display_name}')
+                
+                messages.append({
+                    'author': message.author.display_name,
+                    'content': content.strip()
+                })
+            
+            # Reverse to get chronological order (oldest first)
+            messages.reverse()
+        except Exception as e:
+            print(f"Error fetching message history: {e}")
+        
+        return messages
     
     async def on_message(self, message: discord.Message):
         """
@@ -55,8 +92,11 @@ class GeminiBot(commands.Bot):
             
             # Show typing indicator while processing
             async with message.channel.typing():
-                # Call Gemini API
-                response = await self.gemini_client.generate_content(content)
+                # Get recent message history for context
+                context_messages = await self.get_recent_messages(message.channel, limit=10)
+                
+                # Call Gemini API with context
+                response = await self.gemini_client.generate_content(content, context_messages)
                 
                 if response:
                     # Discord has a 2000 character limit per message
@@ -72,19 +112,3 @@ class GeminiBot(commands.Bot):
         
         # Process commands if any
         await self.process_commands(message)
-
-
-def main():
-    """Main function to run the bot."""
-    # Validate configuration
-    if not config.validate():
-        print("Configuration validation failed. Exiting.")
-        return
-    
-    # Create and run bot
-    bot = GeminiBot()
-    bot.run(config.discord_token)
-
-
-if __name__ == "__main__":
-    main()

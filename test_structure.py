@@ -8,14 +8,14 @@ import sys
 def test_imports():
     """Test that all modules can be imported."""
     try:
-        import config
+        from src.utils import config
         print("✓ config module imported successfully")
         
-        import gemini_client
+        from src.utils import gemini_client
         print("✓ gemini_client module imported successfully")
         
-        import bot
-        print("✓ bot module imported successfully")
+        from src.bot import discord_bot
+        print("✓ discord_bot module imported successfully")
         
         return True
     except ImportError as e:
@@ -26,11 +26,12 @@ def test_imports():
 def test_config_structure():
     """Test that config module has required attributes."""
     try:
-        from config import config
+        from src.utils.config import config
         
         # Check that config has the required attributes
         assert hasattr(config, 'discord_token'), "Missing discord_token attribute"
         assert hasattr(config, 'gemini_api_key'), "Missing gemini_api_key attribute"
+        assert hasattr(config, 'system_prompt'), "Missing system_prompt attribute"
         assert hasattr(config, 'validate'), "Missing validate method"
         
         print("✓ config module has all required attributes")
@@ -43,7 +44,7 @@ def test_config_structure():
 def test_gemini_client_structure():
     """Test that GeminiClient has required methods."""
     try:
-        from gemini_client import GeminiClient
+        from src.utils.gemini_client import GeminiClient
         
         # Check that GeminiClient has required methods
         assert hasattr(GeminiClient, 'generate_content'), "Missing generate_content method"
@@ -59,11 +60,12 @@ def test_gemini_client_structure():
 def test_bot_structure():
     """Test that GeminiBot has required methods."""
     try:
-        from bot import GeminiBot
+        from src.bot.discord_bot import GeminiBot
         
         # Check that GeminiBot has required methods
         assert hasattr(GeminiBot, 'on_ready'), "Missing on_ready method"
         assert hasattr(GeminiBot, 'on_message'), "Missing on_message method"
+        assert hasattr(GeminiBot, 'get_recent_messages'), "Missing get_recent_messages method"
         
         print("✓ GeminiBot has all required methods")
         return True

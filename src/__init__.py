@@ -1,0 +1,3 @@
+"""
+Gemini Discord Bot package.
+"""

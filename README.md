@@ -11,11 +11,23 @@ Discord bot that integrates with Google's Gemini API to generate AI-powered resp
 
 ## Architecture
 
-The bot consists of three main modules:
+The bot follows a modular structure organized in folders:
 
-- **bot.py** - Main Discord bot logic and event handlers
-- **gemini_client.py** - Gemini API client for content generation
-- **config.py** - Configuration management for environment variables
+```
+gemini-bot/
+├── main.py                      # Entry point
+├── src/
+│   ├── bot/
+│   │   └── discord_bot.py      # Discord bot logic and event handlers
+│   └── utils/
+│       ├── config.py            # Configuration management
+│       └── gemini_client.py    # Gemini API client
+```
+
+Key features:
+- **Message Context**: Bot fetches last 10 messages for better context-aware responses
+- **System Prompt**: Configurable via SYSTEM_PROMPT environment variable
+- **Enhanced API**: Uses Gemini's thinking config for improved responses
 
 ## Prerequisites
 
@@ -60,7 +72,7 @@ GEMINI_API_KEY=your_gemini_api_key
 
 4. Run the bot:
 ```bash
-python bot.py
+python main.py
 ```
 
 Note: For local development with `.env` file, install python-dotenv:
@@ -68,7 +80,7 @@ Note: For local development with `.env` file, install python-dotenv:
 pip install python-dotenv
 ```
 
-And add this to the top of `config.py`:
+And add this to the top of `src/utils/config.py`:
 ```python
 from dotenv import load_dotenv
 load_dotenv()
@@ -105,20 +117,25 @@ heroku ps:scale worker=1
 
 ## Configuration
 
-The Gemini API is configured with the following parameters in `gemini_client.py`:
+The Gemini API is configured with the following parameters in `src/utils/gemini_client.py`:
 
 - **Model**: `gemini-flash-lite-latest`
 - **Temperature**: 0.8 (controls randomness)
 - **TopK**: 40 (limits vocabulary to top K tokens)
 - **TopP**: 0.95 (nucleus sampling threshold)
-- **MaxOutputTokens**: 1024 (maximum response length)
+- **MaxOutputTokens**: 4096 (maximum response length)
+- **ThinkingBudget**: 2048 (enhanced reasoning capability)
+- **System Instruction**: Configurable system prompt with conversation context
+
+The bot automatically includes the last 10 messages from the channel as context in each request, allowing for more contextual and relevant responses.
 
 You can adjust these values in the `generate_content` method.
 
 ## Environment Variables
 
-- `DISCORD_TOKEN` - Your Discord bot token
-- `GEMINI_API_KEY` - Your Google Gemini API key
+- `DISCORD_TOKEN` - Your Discord bot token (required)
+- `GEMINI_API_KEY` - Your Google Gemini API key (required)
+- `SYSTEM_PROMPT` - Custom system prompt for the AI (optional, has sensible default)
 
 ## License
 
