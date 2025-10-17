@@ -136,7 +136,3 @@ You can adjust these values in the `generate_content` method.
 - `DISCORD_TOKEN` - Your Discord bot token (required)
 - `GEMINI_API_KEY` - Your Google Gemini API key (required)
 - `SYSTEM_PROMPT` - Custom system prompt for the AI (optional, has sensible default)
-
-## License
-
-MIT
