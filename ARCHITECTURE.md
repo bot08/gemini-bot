@@ -63,6 +63,7 @@ Manages environment variables and configuration. Contains:
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent`
 - Method: POST
 - Authentication: API key in URL parameter
+- **Note**: Using v1beta API version (beta stability level)
 - Request format:
 ```json
 {
