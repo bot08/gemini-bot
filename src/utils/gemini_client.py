@@ -1,59 +1,26 @@
-"""
-Gemini API client module for generating content using Google's Gemini model.
-"""
+"""Gemini API client for content generation."""
 
 import requests
 from typing import Optional, Dict, Any, List
 
 
 class GeminiClient:
-    """Client for interacting with Google's Gemini API."""
+    """Client for Google's Gemini API."""
 
     def __init__(self, api_key: str, system_prompt: str):
-        """
-        Initialize Gemini client.
-
-        Args:
-            api_key: Google Gemini API key
-            system_prompt: System instruction for the AI
-        """
         self.api_key = api_key
         self.system_prompt = system_prompt
         self.model = "gemini-flash-lite-latest"
         self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
 
-    def generate_content(
-        self,
-        prompt: str,
-        context_messages: Optional[List[Dict[str, str]]] = None
-    ) -> Optional[str]:
-        """
-        Generate content using Gemini API.
-
-        Args:
-            prompt: The text prompt to send to Gemini
-            context_messages: List of recent messages for context
-
-        Returns:
-            Generated text response or None if request fails
-        """
-        url = self.base_url
-
+    def generate_content(self, prompt: str, context_messages: Optional[List[Dict[str, str]]] = None) -> Optional[str]:
+        """Generate content using Gemini API with context."""
         # Build system instruction with context
         system_instruction_text = self.system_prompt
         if context_messages:
             system_instruction_text += "\n\nRecent conversation context (for reference only):\n"
             for msg in context_messages:
                 system_instruction_text += f"{msg['author']}: {msg['content']}\n"
-
-        print(f"🛠️ System Instruction: {system_instruction_text}")
-
-        # Build the contents array with the user message
-        contents = [{
-            "parts": [{
-                "text": prompt
-            }]
-        }]
 
         payload = {
             "generationConfig": {
@@ -68,36 +35,39 @@ class GeminiClient:
             },
             "system_instruction": {
                 "role": "user",
-                "parts": [{
-                    "text": system_instruction_text
-                }]
+                "parts": [{"text": system_instruction_text}]
             },
-            "contents": contents
+            "contents": [{"parts": [{"text": prompt}]}]
         }
 
-        headers = {'Content-Type': 'application/json'}
-
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=60)
+            response = requests.post(self.base_url, json=payload, headers={'Content-Type': 'application/json'}, timeout=60)
             if response.status_code == 200:
-                data = response.json()
-                return self._extract_text(data)
+                return self._extract_text(response.json())
             else:
-                print(f"Error from Gemini API: {response.status_code} - {response.text}")
+                error_data = self._parse_error(response)
+                print(f"❌ Gemini API Error ({response.status_code}): {error_data}")
                 return None
         except Exception as e:
-            print(f"Exception while calling Gemini API: {e}")
+            print(f"❌ Exception calling Gemini API: {e}")
             return None
 
-    def _extract_text(self, response_data: Dict[str, Any]) -> Optional[str]:
+    def _parse_error(self, response) -> str:
+        """Parse error message from API response."""
         try:
-            candidates = response_data.get('candidates', [])
-            if candidates:
-                content = candidates[0].get('content', {})
-                parts = content.get('parts', [])
-                if parts:
-                    return parts[0].get('text', '')
-            return None
-        except Exception as e:
-            print(f"Error extracting text from response: {e}")
+            error_json = response.json()
+            if 'error' in error_json:
+                error = error_json['error']
+                message = error.get('message', 'Unknown error')
+                status = error.get('status', 'UNKNOWN')
+                return f"{status}: {message}"
+        except:
+            pass
+        return response.text[:200]
+
+    def _extract_text(self, response_data: Dict[str, Any]) -> Optional[str]:
+        """Extract text from API response."""
+        try:
+            return response_data['candidates'][0]['content']['parts'][0]['text']
+        except (KeyError, IndexError, TypeError):
             return None

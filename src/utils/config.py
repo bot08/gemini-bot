@@ -1,7 +1,4 @@
-"""
-Configuration module for Discord bot with Gemini API integration.
-Loads environment variables for Discord and Gemini API tokens.
-"""
+"""Configuration for Discord bot with Gemini API integration."""
 
 import os
 from typing import Optional
@@ -10,7 +7,6 @@ from typing import Optional
 class Config:
     """Configuration class for bot tokens and settings."""
     
-    # Default system prompt if none is provided
     DEFAULT_SYSTEM_PROMPT = """You are a helpful AI assistant in a Discord server. 
 You respond to user questions and engage in conversations naturally. 
 Be friendly, concise, and helpful. When users provide context from previous messages, 
@@ -22,12 +18,7 @@ use that context to give more relevant and informed responses."""
         self.system_prompt: str = os.getenv('SYSTEM_PROMPT', self.DEFAULT_SYSTEM_PROMPT)
         
     def validate(self) -> bool:
-        """
-        Validate that all required environment variables are set.
-        
-        Returns:
-            bool: True if all required variables are set, False otherwise.
-        """
+        """Validate required environment variables are set."""
         if not self.discord_token:
             print("Error: DISCORD_TOKEN environment variable is not set")
             return False
@@ -37,5 +28,4 @@ use that context to give more relevant and informed responses."""
         return True
 
 
-# Global config instance
 config = Config()
