@@ -26,7 +26,7 @@ class GeminiBot(commands.Bot):
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print("Bot is ready!")
     
-    async def get_recent_messages(self, channel: discord.TextChannel, limit: int = 10) -> List[Dict[str, str]]:
+    async def get_recent_messages(self, channel: discord.TextChannel, limit: int = 12) -> List[Dict[str, str]]:
         """Fetch recent messages from channel for context."""
         messages = []
         try:
