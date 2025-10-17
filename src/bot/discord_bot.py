@@ -31,7 +31,7 @@ class GeminiBot(commands.Bot):
         messages = []
         try:
             async for message in channel.history(limit=limit):
-                if message.author.bot or not message.content:
+                if not message.content:
                     continue
                 
                 content = message.content
