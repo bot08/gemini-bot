@@ -64,17 +64,21 @@ class GeminiBot(commands.Bot):
             if not content:
                 content = "Hello! How can I help you?"
             
+            # Prepend nickname to prompt so bot knows who it's replying to
+            user_prompt = f"{message.author.display_name}: {content}"
+            
             async with message.channel.typing():
                 context_messages = await self.get_recent_messages(message.channel, limit=10)
-                response = self.gemini_client.generate_content(content, context_messages)
+                response = self.gemini_client.generate_content(user_prompt, context_messages)
                 
                 if response:
                     if len(response) > 2000:
                         chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
-                        for chunk in chunks:
+                        await message.reply(chunks[0])
+                        for chunk in chunks[1:]:
                             await message.channel.send(chunk)
                     else:
-                        await message.channel.send(response)
+                        await message.reply(response)
                 else:
                     await message.channel.send("Sorry, I couldn't generate a response. Please try again later.")
         
