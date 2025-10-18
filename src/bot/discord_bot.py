@@ -15,6 +15,7 @@ class GeminiBot(commands.Bot):
         intents.message_content = True
         intents.messages = True
         intents.guilds = True
+        intents.members = True
         
         super().__init__(command_prefix='!', intents=intents)
         self.gemini_client = GeminiClient(config.gemini_api_key, config.system_prompt)
