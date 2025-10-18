@@ -50,6 +50,31 @@ class GeminiBot(commands.Bot):
         
         return messages
     
+    def convert_mentions_to_pings(self, text: str, guild: discord.Guild) -> str:
+        """Convert @username mentions to proper Discord pings <@user_id>."""
+        import re
+        
+        # Find all @username patterns
+        mention_pattern = r'@(\w+)'
+        matches = re.finditer(mention_pattern, text)
+        
+        replacements = {}
+        for match in matches:
+            username = match.group(1)
+            # Search for member by display name or username
+            member = discord.utils.find(
+                lambda m: m.display_name.lower() == username.lower() or m.name.lower() == username.lower(),
+                guild.members
+            )
+            if member:
+                replacements[match.group(0)] = f'<@{member.id}>'
+        
+        # Apply replacements
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        
+        return text
+    
     async def on_message(self, message: discord.Message):
         """Handle incoming messages."""
         if message.author == self.user:
@@ -72,6 +97,9 @@ class GeminiBot(commands.Bot):
                 response = self.gemini_client.generate_content(user_prompt, context_messages)
                 
                 if response:
+                    # Convert @username mentions to Discord pings
+                    response = self.convert_mentions_to_pings(response, message.guild)
+                    
                     if len(response) > 2000:
                         chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
                         await message.reply(chunks[0])
