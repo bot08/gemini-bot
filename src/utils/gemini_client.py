@@ -24,7 +24,7 @@ class GeminiClient:
 
         payload = {
             "generationConfig": {
-                "temperature": 0.8,
+                "temperature": 0.7,
                 "topK": 40,
                 "topP": 0.95,
                 "maxOutputTokens": 4096,
